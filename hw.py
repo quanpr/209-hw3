@@ -64,5 +64,5 @@ class robot:
 		function[4] = lambda idx: (Dy-idx[1])/(-np.sin(theta))
 		return function[region](x,y)
 
-	def ob_update
+	def ob_update_state_matrix
 
