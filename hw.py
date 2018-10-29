@@ -13,6 +13,7 @@ class robot:
 		#self.ob_update_noise_cov = np.zeros((3,3))
 		self.time_duration = 1
 		self.Dx, self.Dy = 750, 500
+		self.action = np.zeros((2,1))   #Wr, Wl
 
 	def time_update_state_matrix(self, action):
 		matrix = np.zeros((3,3))
@@ -55,7 +56,7 @@ class robot:
 		region = self.find_region(state)
 		Dx, Dy = self.Dx, self.Dy
 		# cos(x) -> x/cos(theta)
-		function[1] = lambda idx: idx[0]/np.cos(theta) 
+		function[1] = lambda idx: idx[0]/np.cos(theta)
 		# cos(90-x) = sin(x) -> y/sin(theta)
 		function[2] = lambda idx: idx[1]/np.sin(theta)
 		# cos(180-x) = -cos(x) -> (Dx-x)/(-cos(theta))
@@ -64,6 +65,18 @@ class robot:
 		function[4] = lambda idx: (Dy-idx[1])/(-np.sin(theta))
 		return function[region](x,y)
 
-	def ob_update_state_matrix
+	#def ob_update_state_matrix
 
+	def gt_Move(self,action,time):
+		#old_state = self.gt_state
+		noise = np.zeros((2,1))
+		noise[0] += np.random.normal(0,21)
+		noise[1] += np.random.normal(0.0016*time,0.36)
+		v = (action[0]+action[1]) /2
+		phi = (action[0]-action[1]) #radius
+		x_move = -(v +noise[0]) * np.cos(old_state[2])
+		y_move = -(v +noise[0]) * np.sin(old_state[2])
+		theta_turn = phi + noise[1]
 
+		self.gt_state += [x_move,y_move,theta_turn]
+		return 0
