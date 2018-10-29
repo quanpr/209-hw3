@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import numpy as np
 import pdb
 
@@ -66,3 +67,6 @@ class robot:
 
 	def ob_update_state_matrix
 
+=======
+#temp adding 
+>>>>>>> 58dcfb6e7fcf941edeb7b926d50b1f2143556230
