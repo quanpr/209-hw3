@@ -65,8 +65,6 @@ class robot:
 		function[4] = lambda idx: (Dy-idx[1])/(-np.sin(theta))
 		return function[region](x,y)
 
-	#def ob_update_state_matrix
-
 	def gt_Move(self,action,time):
 		#old_state = self.gt_state
 		noise = np.zeros((2,1))
@@ -80,3 +78,38 @@ class robot:
 
 		self.gt_state += [x_move,y_move,theta_turn]
 		return 0
+
+	def ob_update_state_matrix(self, state):
+		x, y, theta = state
+		region = self.find_region(state)
+		Dx, Dy = self.Dx, self.Dy
+
+		state_matrix = {}
+		state_matrix[1] = np.zeros((3,3))
+		state_matrix[1][0][0] = 1/np.cos(theta)
+		state_matrix[1][0][2] = x*np.sin(theta)/(np.cos(theta)**2)
+		state_matrix[1][1][1] = 1/np.sin(theta)
+		state_matrix[1][1][2] = -y*np.cos(theta)/(np.sin(theta)**2)
+
+		state_matrix[2] = np.zeros((3,3))
+		state_matrix[2][1][0] = 1/np.cos(theta)
+		state_matrix[2][1][2] = x*np.sin(theta)/(np.cos(theta)**2)
+		state_matrix[2][0][1] = 1/np.sin(theta)
+		state_matrix[2][0][2] = -y*np.cos(theta)/(np.sin(theta)**2)
+
+		state_matrix[3] = np.zeros((3,3))
+		state_matrix[3][0][0] = -1/np.cos(theta)
+		state_matrix[3][0][2] = (Dx-x)*np.sin(theta)/(np.cos(theta)**2)
+		state_matrix[3][1][1] = 1/np.sin(theta)
+		state_matrix[3][1][2] = -y*np.cos(theta)/(np.sin(theta)**2)
+
+		state_matrix[4] = np.zeros((3,3))
+		state_matrix[4][1][0] = 1/np.cos(theta)
+		state_matrix[4][1][2] = -(Dx-x)*np.sin(theta)/(np.cos(theta)**2)
+		state_matrix[4][0][1] = 1/np.sin(theta)
+		state_matrix[4][0][2] = (Dy-y)*np.cos(theta)/(np.sin(theta)**2)
+
+		return state_matrix[region]
+
+	def ob_update_noise_matrix(self):
+		return np.identiy(3)
