@@ -3,23 +3,29 @@ import pdb
 from copy import deepcopy
 
 class robot:
+	# Initialization
+	# state_mean: robot think where it is
+	# state_cov: how certain the robot know where it is
+	# gt_state: the robot actual location
+	#
+	# All state variables are in (x y rotation) order. Unit: x, y in mm; rotation in radian from 0 to 2pi
+	# robot coordinate convention: positvie x point South, positive y point East, 0 rotation point to North
 	def __init__(self, state_mean = np.zeros((3,1)), state_cov = np.zeros((3,3)), gt_state = np.zeros((3,1))):
-		# x, y, theta
-		# theta within the range of [0, 2pi)
 		self.state_mean = state_mean
 		self.state_cov = state_cov
-		# x, y, theta
 		self.gt_state = gt_state
-		#self.time_update_noise_cov = np.zeros((3,3))
-		#self.ob_update_noise_cov = np.zeros((3,3))
-		self.time_duration = 1
+		# how long robot stay in stationary
 		self.time_pass = 0.0
+
 		# transistion model covariance matrix
 		self.transistion_cov = np.zeros((2,2))
 		self.transistion_cov[0][0], self.transistion_cov[1][1]  = 3.65**2, 0.086**2
+
 		# observation model covariance matrix
 		self.ob_cov = np.zeros((3,3))
 		self.ob_cov[0][0], self.ob_cov[1][1], self.ob_cov[2][2] = 9**2, 9**2, 0.0021**2
+
+		# Wall Boundary
 		self.Dx, self.Dy = 750, 500
 
 	def time_update_state_matrix(self, action):
@@ -178,6 +184,7 @@ class robot:
 		Wt = self.time_update_noise_matrix()
 		self.state_cov = np.dot(Ft, np.dot(self.state_cov, np.transpose(Ft)))+\
 							np.dot(Wt, np.dot(self.transistion_cov, np.transpose(Wt)))
+		self.time_pass = 0
 
 	def observation_update(self):
 		Ht = self.ob_update_state_matrix(self.gt_state)
@@ -188,6 +195,7 @@ class robot:
 		#pdb.set_trace()
 		self.state_mean = self.state_mean + np.dot(np.dot(self.state_cov, K), real_ob - estimated_ob)
 		self.state_cov = self.state_cov - np.dot(np.dot(self.state_cov, K), np.dot(Ht, self.state_cov))
+		self.time_pass += 1
 
 		# clamp the state_mean
 		# x between (42.5, 707.5)
