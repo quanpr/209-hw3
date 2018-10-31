@@ -184,7 +184,6 @@ class robot:
 		R = self.ob_cov
 		estimated_ob = self.generate_observation(self.state_mean, add_noise=False)
 		real_ob = self.generate_observation(self.gt_state, add_noise=True)
-		
 		K = np.dot(np.transpose(Ht), np.linalg.pinv((np.dot(Ht, np.dot(self.state_cov, np.transpose(Ht)))+R)))
 		#pdb.set_trace()
 		self.state_mean = self.state_mean + np.dot(np.dot(self.state_cov, K), real_ob - estimated_ob)
@@ -198,27 +197,97 @@ class robot:
 		self.state_mean[1][0] = max(0, min(407.5, self.state_mean[1][0]))
 		self.state_mean[2][0] %= 2*np.pi
 
-###
-if __name__ == '__main__':
-	state_mean, state_cov, gt_state = np.zeros((3,1)), np.zeros((3,3)), np.zeros((3,1))
-	state_mean[0][0], state_mean[1][0], state_mean[2][0] = 20, 20, np.pi/6
-	#state_cov[0][0], state_cov[1][1], state_cov[2][2] = 2, 2, 0.5
-	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 10000, 10000, np.pi/2
-	gt_state[0][0], gt_state[1][0], gt_state[2][0] = 100, 100, np.pi/2
-	action = np.zeros((2,1))
-	#action[0][0] = 0
-	robot = robot(state_mean, state_cov, gt_state)
-	i = 0
-	while True:
-		robot.observation_update()
-		i += 1
-		if i % 100 == 0:
-			print(robot.state_cov, '\r\n', robot.state_mean)
-			pdb.set_trace()
-	'''
-	robot.time_update(action)
-	robot.distance_function(robot.gt_state)
-	print(robot.ob_update_state_matrix(robot.gt_state))
-	pdb.set_trace()
-	'''
+	def action_pair_generate(self,move,rotate): #input mm/s and degree in rotation
+			action_pair = np.zeros((2,1))
+			if (move >= 74): #max speed
+				move = 73
+			elif (move <= -74):
+				move = -73
 
+			if (rotate > 49): #max rotate speed
+				rotate = 49
+			elif (rotate < -49):
+				rotate = -49
+
+			if (move != 0):
+				action_pair[0][0] = action_pair[1][0] = move/40.0
+			elif(rotate != 0):
+				action_pair[0][0] = rotate * np.pi / 180.0*85/40
+				action_pair[1][0] = -action_pair[0][0]
+			return action_pair
+def test_case1(robot):
+	state = np.array([[375]
+					,[250],
+					[0]])
+	robot.gt_state = state
+	action_pair_array = [robot.action_pair_generate(0,45),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(0,30)]
+
+	for a in action_pair_array:
+		robot.gt_state = robot.next_state(robot.gt_state,a,False)
+		print(robot.gt_state)
+		print(robot.generate_observation(robot.gt_state,False))
+		print('\n')
+		#robot.timeupdate
+		#robot.observationupdate
+
+def test_case2(robot,state):
+	robot.gt_state = state
+	action_pair_array = [robot.action_pair_generate(30,0),
+						robot.action_pair_generate(0,90),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(0,-90),
+						robot.action_pair_generate(30,0)]
+
+	for a in action_pair_array:
+		robot.gt_state = robot.next_state(robot.gt_state,a,True)
+		robot.time_update(a)
+		for b in range(1):
+			robot.observation_update()
+
+
+		#robot.timeupdate
+		#robot.observationupdate
+		print robot.gt_state
+		print robot.state_mean
+		print robot.state_cov
+		print('\n')
+
+
+if __name__ == '__main__':
+
+	state = np.array([[375]
+			,[250],
+			[np.pi]])
+	state_cov = np.zeros((3,3))
+	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 1, 1, np.pi
+	robot = robot(state,state_cov)
+	test_case2(robot,state)
+
+# if __name__ == '__main__':
+# 	state_mean, state_cov, gt_state = np.zeros((3,1)), np.zeros((3,3)), np.zeros((3,1))
+# 	state_mean[0][0], state_mean[1][0], state_mean[2][0] = 20, 20, np.pi/6
+# 	#state_cov[0][0], state_cov[1][1], state_cov[2][2] = 2, 2, 0.5
+# 	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 10000, 10000, np.pi/2
+# 	gt_state[0][0], gt_state[1][0], gt_state[2][0] = 100, 100, np.pi/2
+# 	action = np.zeros((2,1))
+# 	#action[0][0] = 0
+# 	robot = robot(state_mean, state_cov, gt_state)
+# 	i = 0
+# 	while True:
+# 		robot.observation_update()
+# 		i += 1
+# 		if i % 100 == 0:
+# 			print(robot.state_cov, '\r\n', robot.state_mean)
+# 			pdb.set_trace()
+# 	'''
+# 	robot.time_update(action)
+# 	robot.distance_function(robot.gt_state)
+# 	print(robot.ob_update_state_matrix(robot.gt_state))
+# 	pdb.set_trace()
+# 	'''
