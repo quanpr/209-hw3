@@ -80,7 +80,7 @@ class robot:
 
 		if(add_noise == True):
 			noise[0] += np.random.normal(0,3.65)  #set 0.05 percent for std
-			noise[1] += np.random.normal(0,0.0021) #
+			noise[1] += np.random.normal(0,0.0021) #motion noise in radius
 
 		v = (action[0]+action[1]) /2 * 40
 		phi = (action[0]-action[1]) * 20/85 #radius
@@ -89,6 +89,7 @@ class robot:
 		new_state[1][0] = state[1] - (v +noise[0]) * np.sin(state[2])
 		new_state[2][0] = state[2] + (phi + noise[1])  #rotation ratial
 
+		#apply boundary condition and normalize for theta, x, y
 		while (new_state[2] >= 2 * np.pi ):
 			new_state[2] -= 2 * np.pi
 		while (new_state[2] <= 0 ):
@@ -123,6 +124,7 @@ class robot:
 			noise[1][0] = np.random.normal(0,9)
 			noise[2][0] = np.random.normal(self.time_pass * 0.0014,0.0021)
 			observ += noise
+			self.time_pass += 1  #add time when observation is takend by robot
 		return observ
 
 
