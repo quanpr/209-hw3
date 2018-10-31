@@ -148,8 +148,9 @@ class robot:
 			state_matrix[2][2] = 1.0
 
 		theta0 = (theta-np.pi/2)%(2*np.pi)
-		state[2][0] = theta0
-		region0 = self.find_region(state)
+		state0 = deepcopy(state)
+		state0[2][0] = theta0
+		region0 = self.find_region(state0)
 		pdb.set_trace()
 		if region0 == 1:
 			state_matrix[1][0] = 1/np.cos(theta0)
@@ -169,6 +170,23 @@ class robot:
 	def ob_update_noise_matrix(self):
 		return np.identiy(3)
 
+	def time_update(self, action):
+		self.state_mean = self.next_state(state=self.state_mean, action=action, add_noise=False)
+		Ft = self.time_update_state_matrix(action)
+		Wt = self.time_update_noise_matrix()
+		self.state_cov = np.dot(Ft, np.dot(self.state_cov, np.transpose(Ft)))+\
+							np.dot(Wt, np.dot(self.transistion_cov, np.transpose(Wt)))
+
+	def observation_update(self, action):
+		Ht = self.ob_update_state_matrix(self.gt_state)
+		R = self.ob_cov
+		estimated_state = self.next_state(action)
+		K = np.dot(np.transpose(Ht), np.linalg.pinv(
+				(np.dot(Ht, np.dot(self.state_cov, np.transpose(Ht)))+R)))
+		self.state_mean = self.state_mean + np.dot(K, np.gt_state - estimated_state)
+		self.state_cov = self.state_cov - np.dot(np.dot(self.state_cov, K), 
+							np.dot(Ht, self.state_cov))
+
 if __name__ == '__main__':
 	state_mean, state_cov, gt_state = np.zeros((3,1)), np.zeros((3,3)), np.zeros((3,1))
 	state_mean[0][0], state_mean[1][0], state_mean[2][0] = 50, 50, np.pi/2
@@ -177,6 +195,7 @@ if __name__ == '__main__':
 	action = np.zeros((2,1))
 	action[0][0] = 5
 	robot = robot(state_mean, state_cov, gt_state)
+	robot.time_update(action)
 	robot.distance_function(robot.gt_state)
 	print(robot.ob_update_state_matrix(robot.gt_state))
 	pdb.set_trace()
