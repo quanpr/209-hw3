@@ -169,21 +169,64 @@ class robot:
 	def ob_update_noise_matrix(self):
 		return np.identiy(3)
 
+	def action_pair_generate(self,move,rotate): #input mm/s and degree in rotation
+		action_pair = np.zeros((2,1))
+		if (move >= 74): #max speed
+			move = 73
+		elif (move <= -74):
+			move = -73
+
+		if (rotate > 49): #max rotate speed
+			rotate = 49
+		elif (rotate < -49):
+			rotate = -49
+
+		if (move != 0):
+			action_pair[0][0] = action_pair[1][0] = move/40.0
+		elif(rotate != 0):
+			action_pair[0][0] = rotate * np.pi / 180.0*85/40
+			action_pair[1][0] = -action_pair[0][0]
+		return action_pair
+
+def test_case1(robot):
+	state = np.array([[42.5]
+			,[42.5],
+			[np.pi*3/2]])
+	robot.gt_state = state
+	action_pair_array = [robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0)]
+
+	for a in action_pair_array:
+		robot.gt_state = robot.next_state(robot.gt_state,a,False)
+		#robot.timeupdate
+		#robot.observationupdate
+		print robot.gt_state
+
+def test_case2(robot):
+	state = np.array([[42.5]
+			,[42.5],
+			[np.pi*3/2]])
+	robot.gt_state = state
+	action_pair_array = [robot.action_pair_generate(30,0),
+						robot.action_pair_generate(0,90),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(0,-90),
+						robot.action_pair_generate(30,0)]
+
+	for a in action_pair_array:
+		robot.gt_state = robot.next_state(robot.gt_state,a,False)
+		#robot.timeupdate
+		#robot.observationupdate
+		print robot.gt_state
 
 if __name__ == '__main__':
 	robot = robot()
 	state = np.array([[42.5]
 			,[42.5],
 			[np.pi*3/2]])
-	degree =370
-	wr = degree * np.pi / 180.0*85/40
-
-	speed = 50.0 # 50mm
-	wl = speed / 40.0
-	action = np.array([[wl],[wl]])
-	new_state = robot.next_state(state,action,True)
-	# print(new_state)
-
-	new_state = robot.next_state(new_state,action,True)
-	print(new_state)
-	print(robot.generate_observation(new_state,False))
+	test_case1(robot)
