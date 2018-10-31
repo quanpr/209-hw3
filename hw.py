@@ -114,6 +114,7 @@ class robot:
 		observ[0][0]=self.distance_function(state) #front sensor
 		right_sensor_state = deepcopy(state)
 		right_sensor_state[2][0] += - np.pi/2
+		right_sensor_state[2][0] %= 2*np.pi
 		observ[1][0]= self.distance_function(right_sensor_state) #right sensor
 		observ[2][0] = state[2][0]
 
@@ -123,7 +124,7 @@ class robot:
 			noise[1][0] = np.random.normal(0,9)
 			noise[2][0] = np.random.normal(self.time_pass * 0.0014,0.0021)
 			observ += noise
-			self.time_pass += 1  #add time when observation is takend by robot
+			#self.time_pass += 1  #add time when observation is takend by robot
 		return observ
 
 	def ob_update_state_matrix(self, state):
@@ -183,26 +184,36 @@ class robot:
 		R = self.ob_cov
 		estimated_ob = self.generate_observation(self.state_mean, add_noise=False)
 		real_ob = self.generate_observation(self.gt_state, add_noise=True)
-		K = np.dot(np.transpose(Ht), np.linalg.pinv(
-				(np.dot(Ht, np.dot(self.state_cov, np.transpose(Ht)))+R)))
-		self.state_mean = self.state_mean + np.dot(np.dot(self.state_cov, K), 
-							real_ob - estimated_ob)
-		self.state_cov = self.state_cov - np.dot(np.dot(self.state_cov, K), 
-							np.dot(Ht, self.state_cov))
+		
+		K = np.dot(np.transpose(Ht), np.linalg.pinv((np.dot(Ht, np.dot(self.state_cov, np.transpose(Ht)))+R)))
+		#pdb.set_trace()
+		self.state_mean = self.state_mean + np.dot(np.dot(self.state_cov, K), real_ob - estimated_ob)
+		self.state_cov = self.state_cov - np.dot(np.dot(self.state_cov, K), np.dot(Ht, self.state_cov))
+
+		# clamp the state_mean
+		# x between (42.5, 707.5)
+		# y between (42.5, 407.5)
+		# theta between (0, 2xpi)
+		self.state_mean[0][0] = max(0, min(707.5, self.state_mean[0][0]))
+		self.state_mean[1][0] = max(0, min(407.5, self.state_mean[1][0]))
+		self.state_mean[2][0] %= 2*np.pi
 
 if __name__ == '__main__':
 	state_mean, state_cov, gt_state = np.zeros((3,1)), np.zeros((3,3)), np.zeros((3,1))
-	state_mean[0][0], state_mean[1][0], state_mean[2][0] = 50, 50, 0
+	state_mean[0][0], state_mean[1][0], state_mean[2][0] = 20, 20, np.pi/6
 	#state_cov[0][0], state_cov[1][1], state_cov[2][2] = 2, 2, 0.5
-	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 100, 100, np.pi/2
-	gt_state[0][0], gt_state[1][0], gt_state[2][0] = 50, 50, np.pi/2
+	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 10000, 10000, np.pi/2
+	gt_state[0][0], gt_state[1][0], gt_state[2][0] = 100, 100, np.pi/2
 	action = np.zeros((2,1))
 	#action[0][0] = 0
 	robot = robot(state_mean, state_cov, gt_state)
+	i = 0
 	while True:
 		robot.observation_update()
-		print(robot.state_cov, '\r\n', robot.state_mean)
-		pdb.set_trace()
+		i += 1
+		if i % 100 == 0:
+			print(robot.state_cov, '\r\n', robot.state_mean)
+			pdb.set_trace()
 	'''
 	robot.time_update(action)
 	robot.distance_function(robot.gt_state)
