@@ -3,7 +3,7 @@ import pdb
 
 class robot:
 	def __init__(self):
-		# x, y, theta
+		# x mm, y mm, theta radius
 		# theta within the range of [0, 2pi)
 		self.state_mean = np.zeros((3,1))
 		self.state_cov = np.zeros((3,3))
@@ -65,20 +65,44 @@ class robot:
 		function[4] = lambda idx: (Dy-idx[1])/(-np.sin(theta))
 		return function[region](x,y)
 
-	def gt_Move(self,action,time):
+	def next_state(self,state,action, add_noise = False):
 		#old_state = self.gt_state
+		new_state= np.zeros((3,1),dtype = float)
 		noise = np.zeros((2,1))
-		noise[0] += np.random.normal(0,21)
-		noise[1] += np.random.normal(0.0016*time,0.36)
-		v = (action[0]+action[1]) /2
-		phi = (action[0]-action[1]) #radius
-		x_move = -(v +noise[0]) * np.cos(old_state[2])
-		y_move = -(v +noise[0]) * np.sin(old_state[2])
-		theta_turn = phi + noise[1]
 
-		self.gt_state += [x_move,y_move,theta_turn]
-		return 0
+		if(add_noise == True):
+			noise[0] += np.random.normal(0,3.65)  #set 0.05 percent error speed to 3*sigma 73mm/step
+			noise[1] += np.random.normal(0,0.36) #bia mean
 
+		v = (action[0]+action[1]) /2 * 40
+		phi = (action[0]-action[1]) * 20/85 #radius
+
+		print(state)
+		# print(state[0][0] -(v +noise[0]) * np.cos(state[2]))
+		# print(state[1][0] - (v +noise[0]) * np.sin(state[2]))
+		# print(state[2][0] + (phi + noise[1]))
+		new_state[0][0] = state[0] - (v +noise[0]) * np.cos(state[2])
+		new_state[1][0] = state[1] - (v +noise[0]) * np.sin(state[2])
+		new_state[2][0] = state[2] + (phi + noise[1])  #rotation ratial
+
+		while (new_state[2] >= 2 * np.pi ):
+			new_state[2] -= 2 * np.pi
+		while (new_state[2] <= 0 ):
+			new_state[2] += 2 * np.pi
+
+		if(new_state[0][0] <= 0.0):  # +42.5
+			new_state[0][0] = 0.0
+		if(new_state[0][0] >= 750.0): # -42.5
+			new_state[0][0] = 750.0
+
+		if(new_state[1][0] <= 0): # +42.5
+			new_state[1][0] = 0.0
+		if(new_state[1][0] >= 500.0): # -42.5
+			new_state[1][0] = 500.0
+		#time += 1
+		#self.gt_state += [x_move,y_move,theta_turn]
+		return new_state
+	def observatoin()
 	def ob_update_state_matrix(self, state):
 		x, y, theta = state
 		region = self.find_region(state)
@@ -113,3 +137,15 @@ class robot:
 
 	def ob_update_noise_matrix(self):
 		return np.identiy(3)
+
+if __name__ == '__main__':
+	robot = robot()
+	state = [0.0,0.0,np.pi]
+	degree =370
+	wr = degree * np.pi / 180.0*85/40
+
+	speed = 50.0 # 50mm
+	wl = speed / 40.0
+
+	new_state = robot.next_state(state,[wr,-wr],False)
+	print(new_state)
