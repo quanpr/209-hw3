@@ -1,4 +1,3 @@
-
 # EE209AS (Fall 2018)
 ## Homework 3
 ### Team Member: Ray Lin, Pengrui Quan
