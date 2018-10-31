@@ -92,7 +92,6 @@ class robot:
 		Dx, Dy = self.Dx, self.Dy
 
 		state_matrix = {}
-<<<<<<< HEAD
 		if region == 1:
 			state_matrix[1] = np.zeros((3,3))
 			state_matrix[1][0][0] = 1/np.cos(theta)
@@ -121,7 +120,7 @@ class robot:
 			state_matrix[4][0][1] = 1/np.sin(theta)
 			state_matrix[4][0][2] = (Dy-y)*np.cos(theta)/(np.sin(theta)**2)
 			state_matrix[4][2][2] = 1.0
-=======
+
 		state_matrix[1] = np.zeros((3,3))
 		state_matrix[1][0][0] = 1/np.cos(theta)
 		state_matrix[1][0][2] = x*np.sin(theta)/(np.cos(theta)**2)
@@ -145,14 +144,12 @@ class robot:
 		state_matrix[4][1][2] = -(Dx-x)*np.sin(theta)/(np.cos(theta)**2)
 		state_matrix[4][0][1] = 1/np.sin(theta)
 		state_matrix[4][0][2] = (Dy-y)*np.cos(theta)/(np.sin(theta)**2)
->>>>>>> d24d3b41b9fab0cef411c109c51da5c1b8f335ae
 
 		return state_matrix[region]
 
 	def ob_update_noise_matrix(self):
 		return np.identiy(3)
-<<<<<<< HEAD
-	
+
 if __name__ == '__main__':
 	state_mean, state_cov, gt_state = np.zeros((3,1)), np.zeros((3,3)), np.zeros((3,1))
 	state_mean[0][0], state_mean[1][0], state_mean[2][0] = 50, 50, 0
@@ -164,5 +161,4 @@ if __name__ == '__main__':
 	robot.distance_function(robot.gt_state)
 	robot.ob_update_state_matrix(robot.gt_state)
 	pdb.set_trace()
-=======
->>>>>>> d24d3b41b9fab0cef411c109c51da5c1b8f335ae
+
