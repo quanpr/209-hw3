@@ -196,7 +196,7 @@ class robot:
 		self.state_mean[0][0] = max(0, min(707.5, self.state_mean[0][0]))
 		self.state_mean[1][0] = max(0, min(407.5, self.state_mean[1][0]))
 		self.state_mean[2][0] %= 2*np.pi
-		
+
 	def action_pair_generate(self,move,rotate): #input mm/s and degree in rotation
 			action_pair = np.zeros((2,1))
 			if (move >= 74): #max speed
@@ -245,14 +245,17 @@ def test_case2(robot,state):
 						robot.action_pair_generate(30,0)]
 
 	for a in action_pair_array:
-
+		robot.gt_state = robot.next_state(robot.gt_state,a,True)
 		robot.time_update(a)
+		for b in range(1):
+			robot.observation_update()
 
-		robot.gt_state = robot.next_state(robot.gt_state,a,False)
+
 		#robot.timeupdate
 		#robot.observationupdate
 		print robot.gt_state
 		print robot.state_mean
+		print robot.state_cov
 		print('\n')
 
 
@@ -261,8 +264,10 @@ if __name__ == '__main__':
 	state = np.array([[375]
 			,[250],
 			[np.pi]])
-	robot = robot(state)
-	test_case2(robot,state,)
+	state_cov = np.zeros((3,3))
+	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 1, 1, np.pi
+	robot = robot(state,state_cov)
+	test_case2(robot,state)
 
 # if __name__ == '__main__':
 # 	state_mean, state_cov, gt_state = np.zeros((3,1)), np.zeros((3,3)), np.zeros((3,1))
