@@ -19,7 +19,7 @@ class robot:
 		self.transistion_cov[0][0], self.transistion_cov[1][1]  = 3.65**2, 0.086**2
 		# observation model covariance matrix
 		self.ob_cov = np.zeros((3,3))
-		self.ob_cov[0][0], self.ob_cov[1][1], self.ob_cov[2][2] = 9**2, 9**2, 0.0021**2 
+		self.ob_cov[0][0], self.ob_cov[1][1], self.ob_cov[2][2] = 9**2, 9**2, 0.0021**2
 		self.Dx, self.Dy = 750, 500
 
 	def time_update_state_matrix(self, action):
@@ -63,7 +63,7 @@ class robot:
 		region = self.find_region(state)
 		Dx, Dy = self.Dx, self.Dy
 		# cos(x) -> x/cos(theta)
-		function[1] = lambda idx: idx[0]/np.cos(theta) 
+		function[1] = lambda idx: idx[0]/np.cos(theta)
 		# cos(90-x) = sin(x) -> y/sin(theta)
 		function[2] = lambda idx: idx[1]/np.sin(theta)
 		# cos(180-x) = -cos(x) -> (Dx-x)/(-cos(theta))
@@ -79,21 +79,20 @@ class robot:
 		noise = np.zeros((2,1))
 
 		if(add_noise == True):
-			noise[0] += np.random.normal(0,3.65)  #set 0.05 percent for std
-			noise[1] += np.random.normal(0,0.0021) #motion noise in radius
+			noise[0][0] += np.random.normal(0,3.65)  #set 0.05 percent for std
+			noise[1][0] += np.random.normal(0,0.0021) #motion noise in radius
 
-		v = (action[0]+action[1]) /2 * 40
-		phi = (action[0]-action[1]) * 20/85 #radius
+		v = (action[0][0]+action[1][0]) /2 * 40
+		phi = (action[0][0]-action[1][0]) * 20/85 #radius
 
-		new_state[0][0] = state[0] - (v +noise[0]) * np.cos(state[2])
-		new_state[1][0] = state[1] - (v +noise[0]) * np.sin(state[2])
-		new_state[2][0] = state[2] + (phi + noise[1])  #rotation ratial
+		new_state[0][0] = state[0][0] - (v +noise[0][0]) * np.cos(state[2][0])
+		new_state[1][0] = state[1][0] - (v +noise[0][0]) * np.sin(state[2][0])
+		new_state[2][0] = state[2][0] + (phi + noise[1][0])  #rotation ratial
 
 		#apply boundary condition and normalize for theta, x, y
-		while (new_state[2] >= 2 * np.pi ):
-			new_state[2] -= 2 * np.pi
-		while (new_state[2] <= 0 ):
-			new_state[2] += 2 * np.pi
+
+		new_state[2][0] %= 2 * np.pi
+
 
 		if(new_state[0][0] <= 42.5):  # +42.5
 			new_state[0][0] = 42.5
@@ -138,8 +137,8 @@ class robot:
 			state_matrix[2][2] = 1.0
 		elif region == 2:
 			state_matrix[0][1] = 1/np.sin(theta)
-			state_matrix[0][2] = -y*np.cos(theta)/(np.sin(theta)**2)	
-			state_matrix[2][2] = 1.0	
+			state_matrix[0][2] = -y*np.cos(theta)/(np.sin(theta)**2)
+			state_matrix[2][2] = 1.0
 		elif region == 3:
 			state_matrix[0][0] = 1/np.cos(theta)
 			state_matrix[0][2] = -(Dx-x)*np.sin(theta)/(np.cos(theta)**2)
@@ -152,13 +151,12 @@ class robot:
 		theta0 = (theta-np.pi/2)%(2*np.pi)
 		state[2][0] = theta0
 		region0 = self.find_region(state)
-		pdb.set_trace()
 		if region0 == 1:
 			state_matrix[1][0] = 1/np.cos(theta0)
 			state_matrix[1][2] = x*np.sin(theta0)/(np.cos(theta0)**2)
 		elif region0 == 2:
 			state_matrix[1][1] = 1/np.sin(theta0)
-			state_matrix[1][2] = -y*np.cos(theta0)/(np.sin(theta0)**2)	
+			state_matrix[1][2] = -y*np.cos(theta0)/(np.sin(theta0)**2)
 		elif region0 == 3:
 			state_matrix[1][0] = 1/np.cos(theta0)
 			state_matrix[1][2] = -(Dx-x)*np.sin(theta0)/(np.cos(theta0)**2)
@@ -171,15 +169,21 @@ class robot:
 	def ob_update_noise_matrix(self):
 		return np.identiy(3)
 
-if __name__ == '__main__':
-	state_mean, state_cov, gt_state = np.zeros((3,1)), np.zeros((3,3)), np.zeros((3,1))
-	state_mean[0][0], state_mean[1][0], state_mean[2][0] = 50, 50, np.pi/2
-	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 2, 2, 0.5
-	gt_state[0][0], gt_state[1][0], gt_state[2][0] = 50, 50, np.pi*3/2
-	action = np.zeros((2,1))
-	action[0][0] = 5
-	robot = robot(state_mean, state_cov, gt_state)
-	robot.distance_function(robot.gt_state)
-	print(robot.ob_update_state_matrix(robot.gt_state))
-	pdb.set_trace()
 
+if __name__ == '__main__':
+	robot = robot()
+	state = np.array([[42.5]
+			,[42.5],
+			[np.pi*3/2]])
+	degree =370
+	wr = degree * np.pi / 180.0*85/40
+
+	speed = 50.0 # 50mm
+	wl = speed / 40.0
+	action = np.array([[wl],[wl]])
+	new_state = robot.next_state(state,action,True)
+	# print(new_state)
+
+	new_state = robot.next_state(new_state,action,True)
+	print(new_state)
+	print(robot.generate_observation(new_state,False))
