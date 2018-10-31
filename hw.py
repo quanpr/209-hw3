@@ -259,32 +259,32 @@ def test_case2(robot,state):
 		print('\n')
 
 
-if __name__ == '__main__':
-
-	state = np.array([[375]
-			,[250],
-			[np.pi]])
-	state_cov = np.zeros((3,3))
-	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 1, 1, np.pi
-	robot = robot(state,state_cov)
-	test_case2(robot,state)
-
 # if __name__ == '__main__':
-# 	state_mean, state_cov, gt_state = np.zeros((3,1)), np.zeros((3,3)), np.zeros((3,1))
-# 	state_mean[0][0], state_mean[1][0], state_mean[2][0] = 20, 20, np.pi/6
-# 	#state_cov[0][0], state_cov[1][1], state_cov[2][2] = 2, 2, 0.5
-# 	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 10000, 10000, np.pi/2
-# 	gt_state[0][0], gt_state[1][0], gt_state[2][0] = 100, 100, np.pi/2
-# 	action = np.zeros((2,1))
-# 	#action[0][0] = 0
-# 	robot = robot(state_mean, state_cov, gt_state)
-# 	i = 0
-# 	while True:
-# 		robot.observation_update()
-# 		i += 1
-# 		if i % 100 == 0:
-# 			print(robot.state_cov, '\r\n', robot.state_mean)
-# 			pdb.set_trace()
+
+# 	state = np.array([[375]
+# 			,[250],
+# 			[np.pi]])
+# 	state_cov = np.zeros((3,3))
+# 	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 1, 1, np.pi
+# 	robot = robot(state,state_cov)
+# 	test_case2(robot,state)
+
+if __name__ == '__main__':
+	state_mean, state_cov, gt_state = np.zeros((3,1)), np.zeros((3,3)), np.zeros((3,1))
+	state_mean[0][0], state_mean[1][0], state_mean[2][0] = 20, 20, np.pi/6
+	#state_cov[0][0], state_cov[1][1], state_cov[2][2] = 2, 2, 0.5
+	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 10000, 10000, np.pi/2
+	gt_state[0][0], gt_state[1][0], gt_state[2][0] = 100, 100, np.pi/2
+	action = np.zeros((2,1))
+	#action[0][0] = 0
+	robot = robot(state_mean, state_cov, gt_state)
+	i = 0
+	while True:
+		robot.observation_update()
+		i += 1
+		if i % 100 == 0:
+			print(robot.state_cov, '\r\n', robot.state_mean)
+			pdb.set_trace()
 # 	'''
 # 	robot.time_update(action)
 # 	robot.distance_function(robot.gt_state)
