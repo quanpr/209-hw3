@@ -1,5 +1,6 @@
 import numpy as np
 import pdb
+from copy import deepcopy
 
 class robot:
 	def __init__(self, state_mean = np.zeros((3,1)), state_cov = np.zeros((3,3)), gt_state = np.zeros((3,1))):
@@ -12,6 +13,7 @@ class robot:
 		#self.time_update_noise_cov = np.zeros((3,3))
 		#self.ob_update_noise_cov = np.zeros((3,3))
 		self.time_duration = 1
+		self.time_pass = 0.0
 		# transistion model covariance matrix
 		self.transistion_cov = np.zeros((2,2))
 		self.transistion_cov[0][0], self.transistion_cov[1][1]  = 3.65**2, 0.086**2
@@ -71,6 +73,58 @@ class robot:
 		idx = (x,y)
 		return function[region](idx)
 
+	def next_state(self,state,action, add_noise = False):
+		#old_state = self.gt_state
+		new_state= np.zeros((3,1),dtype = float)
+		noise = np.zeros((2,1))
+
+		if(add_noise == True):
+			noise[0] += np.random.normal(0,3.65)  #set 0.05 percent for std
+			noise[1] += np.random.normal(0,0.0021) #
+
+		v = (action[0]+action[1]) /2 * 40
+		phi = (action[0]-action[1]) * 20/85 #radius
+
+		new_state[0][0] = state[0] - (v +noise[0]) * np.cos(state[2])
+		new_state[1][0] = state[1] - (v +noise[0]) * np.sin(state[2])
+		new_state[2][0] = state[2] + (phi + noise[1])  #rotation ratial
+
+		while (new_state[2] >= 2 * np.pi ):
+			new_state[2] -= 2 * np.pi
+		while (new_state[2] <= 0 ):
+			new_state[2] += 2 * np.pi
+
+		if(new_state[0][0] <= 42.5):  # +42.5
+			new_state[0][0] = 42.5
+		if(new_state[0][0] >= 707.5): # -42.5
+			new_state[0][0] = 707.5
+
+		if(new_state[1][0] <= 42.5): # +42.5
+			new_state[1][0] = 42.5
+		if(new_state[1][0] >= 457.5): # -42.5
+			new_state[1][0] = 457.5
+		#time += 1
+		#self.gt_state += [x_move,y_move,theta_turn]
+		return new_state
+
+	def generate_observation(self,state,add_noise = False):
+		observ = np.zeros((3,1))
+
+		self.distance_function(state)
+		observ[0][0]=self.distance_function(state) #front sensor
+		right_sensor_state = deepcopy(state)
+		right_sensor_state[2][0] += - np.pi/2
+		observ[1][0]= self.distance_function(right_sensor_state) #right sensor
+		observ[2][0] = state[2][0]
+
+		if(add_noise == True):
+			noise = np.zeros((3,1))
+			noise[0][0] = np.random.normal(0,9)
+			noise[1][0] = np.random.normal(0,9)
+			noise[2][0] = np.random.normal(self.time_pass * 0.0014,0.0021)
+			observ += noise
+		return observ
+
 	def ob_update_state_matrix(self, state):
 		x, y, theta = state[0][0], state[1][0], state[2][0]
 		region = self.find_region(state)
@@ -126,3 +180,4 @@ if __name__ == '__main__':
 	robot.distance_function(robot.gt_state)
 	print(robot.ob_update_state_matrix(robot.gt_state))
 	pdb.set_trace()
+
