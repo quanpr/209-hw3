@@ -24,7 +24,8 @@ class robot:
 
 	def time_update_state_matrix(self, action):
 		matrix = np.zeros((3,3))
-		vt, _ = action[0][0]
+		#pdb.set_trace()
+		vt = action[0][0]
 		matrix[0][0], matrix[1][1], matrix[2][2]  = 1.0, 1.0, 1.0
 		theta = self.gt_state[2][0]
 		matrix[0][2] = vt*np.sin(theta)
@@ -211,27 +212,28 @@ class robot:
 							real_ob - estimated_ob)
 		self.state_cov = self.state_cov - np.dot(np.dot(self.state_cov, K),
 							np.dot(Ht, self.state_cov))
+
 def test_case1(robot):
-	state = np.array([[42.5]
-			,[42.5],
-			[np.pi*3/2]])
+	state = np.array([[375]
+					,[250],
+					[0]])
 	robot.gt_state = state
-	action_pair_array = [robot.action_pair_generate(30,0),
-						robot.action_pair_generate(30,0),
-						robot.action_pair_generate(30,0),
-						robot.action_pair_generate(30,0),
-						robot.action_pair_generate(30,0),
-						robot.action_pair_generate(30,0)]
+	action_pair_array = [robot.action_pair_generate(0,45),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(0,30)]
 
 	for a in action_pair_array:
 		robot.gt_state = robot.next_state(robot.gt_state,a,False)
+		print(robot.gt_state)
+		print(robot.generate_observation(robot.gt_state,False))
+		print('\n')
 		#robot.timeupdate
 		#robot.observationupdate
-		print robot.gt_state
-def test_case2(robot):
-	state = np.array([[42.5]
-			,[42.5],
-			[np.pi*3/2]])
+
+def test_case2(robot,state):
 	robot.gt_state = state
 	action_pair_array = [robot.action_pair_generate(30,0),
 						robot.action_pair_generate(0,90),
@@ -241,28 +243,41 @@ def test_case2(robot):
 						robot.action_pair_generate(30,0)]
 
 	for a in action_pair_array:
+
+		robot.time_update(a)
+
 		robot.gt_state = robot.next_state(robot.gt_state,a,False)
 		#robot.timeupdate
 		#robot.observationupdate
 		print robot.gt_state
+		print robot.state_mean
+		print('\n')
 
 
 if __name__ == '__main__':
-	state_mean, state_cov, gt_state = np.zeros((3,1)), np.zeros((3,3)), np.zeros((3,1))
-	state_mean[0][0], state_mean[1][0], state_mean[2][0] = 50, 50, 0
-	#state_cov[0][0], state_cov[1][1], state_cov[2][2] = 2, 2, 0.5
-	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 100, 100, np.pi/2
-	gt_state[0][0], gt_state[1][0], gt_state[2][0] = 50, 50, np.pi/2
-	action = np.zeros((2,1))
-	#action[0][0] = 0
-	robot = robot(state_mean, state_cov, gt_state)
-	while True:
-		robot.observation_update()
-		print(robot.state_cov, '\r\n', robot.state_mean)
-		# pdb.set_trace()
-	'''
-	robot.time_update(action)
-	robot.distance_function(robot.gt_state)
-	print(robot.ob_update_state_matrix(robot.gt_state))
-	pdb.set_trace()
-	'''
+
+	state = np.array([[375]
+			,[250],
+			[np.pi]])
+	robot = robot(state)
+	test_case2(robot,state,)
+	# state_mean, state_cov, gt_state = np.zeros((3,1)), np.zeros((3,3)), np.zeros((3,1))
+	# state_mean[0][0], state_mean[1][0], state_mean[2][0] = 50, 50, 0
+	# #state_cov[0][0], state_cov[1][1], state_cov[2][2] = 2, 2, 0.5
+	# state_cov[0][0], state_cov[1][1], state_cov[2][2] = 100, 100, np.pi/2
+	# gt_state[0][0], gt_state[1][0], gt_state[2][0] = 50, 50, np.pi/2
+	# action = np.zeros((2,1))
+	# #action[0][0] = 0
+	# robot = robot(state_mean, state_cov, gt_state)
+	# robot.observation_update()
+	# # while True:
+	# # 	robot.observation_update()
+	# # 	print(robot.state_cov, '\r\n', robot.state_mean)
+	# # 	print(robot.gt_state)
+	# # 	# pdb.set_trace()
+	# '''
+	# robot.time_update(action)
+	# robot.distance_function(robot.gt_state)
+	# print(robot.ob_update_state_matrix(robot.gt_state))
+	# pdb.set_trace()
+	# '''
