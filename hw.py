@@ -1,6 +1,8 @@
 import numpy as np
 import pdb
 from copy import deepcopy
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 
 class robot:
 	# Initialization
@@ -249,47 +251,90 @@ class robot:
 			return action_pair
 
 
-def test_case1(robot):
-	state = np.array([[375]
-					,[250],
-					[0]])
-	robot.gt_state = state
-	action_pair_array = [robot.action_pair_generate(0,45),
-						robot.action_pair_generate(0,45),
-						robot.action_pair_generate(0,45),
-						robot.action_pair_generate(0,45),
-						robot.action_pair_generate(0,45),
-						robot.action_pair_generate(0,30)]
+# Animation and testcast begin
+fig = plt.figure()
+ax = plt.axes(xlim=(0, 750), ylim=(0, 500))
+line, = ax.plot([], [], 'o')
 
-	for a in action_pair_array:
-		robot.gt_state = robot.next_state(robot.gt_state,a,False)
-		print(robot.gt_state)
-		print(robot.generate_observation(robot.gt_state,False))
-		print('\n')
-		#robot.timeupdate
-		#robot.observationupdate
+glb_mean = []
+glb_cov = []
+
+def init():
+    line.set_data([], [])
+    return line,
+
+def animate(i):
+	global glb_mean,glb_cov
+	x, y, z = np.random.multivariate_normal(glb_mean[i%len(glb_mean)], glb_cov[i%len(glb_cov)], 1000).T
+	line.set_data(x, y)
+	return line,
 
 def test_case2(robot,state):
+	global glb_mean, glb_cov
 	robot.gt_state = state
 	action_pair_array = [robot.action_pair_generate(30,0),
 						robot.action_pair_generate(0,90),
 						robot.action_pair_generate(30,0),
 						robot.action_pair_generate(30,0),
 						robot.action_pair_generate(0,-90),
-						robot.action_pair_generate(30,0)]
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						]
 
 	for a in action_pair_array:
+		mean = []
+		cov = []
 		robot.gt_state = robot.next_state(robot.gt_state,a,True)
 		robot.time_update(a)
+
+		mean.append(robot.state_mean[0][0])
+		mean.append(robot.state_mean[1][0])
+		mean.append(robot.state_mean[2][0])
+		glb_mean.append(mean)
+		# glb_mean.append(robot.state_mean.tolist().tolist())
+		glb_cov.append(robot.state_cov.tolist())
+		#print(robot.state_mean.tolist())
+		# print(len(robot.state_cov.tolist()))
+
 		for b in range(1):
 			robot.observation_update()
-
-		#robot.timeupdate
-		#robot.observationupdate
-		print(robot.gt_state)
-		print(robot.state_mean)
-		print(robot.state_cov)
-		print('\n')
+			del mean[:]
+			mean.append(robot.state_mean[0][0])
+			mean.append(robot.state_mean[1][0])
+			mean.append(robot.state_mean[2][0])
+			glb_mean.append(mean)
+			glb_cov.append(robot.state_cov.tolist())
 
 
 if __name__ == '__main__':
@@ -301,7 +346,13 @@ if __name__ == '__main__':
 	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 1, 1, np.pi
 	robot = robot(state,state_cov)
 	test_case2(robot,state)
+	# print(glb_cov)
 
+	anim = animation.FuncAnimation(fig, animate, init_func=init,frames=100, interval=100, blit=True)
+	#anim.save('basic_animation.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+
+
+	plt.show()
 # if __name__ == '__main__':
 # 	state_mean, state_cov, gt_state = np.zeros((3,1)), np.zeros((3,3)), np.zeros((3,1))
 # 	state_mean[0][0], state_mean[1][0], state_mean[2][0] = 20, 20, np.pi/6
