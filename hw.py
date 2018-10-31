@@ -152,7 +152,6 @@ class robot:
 		state0 = deepcopy(state)
 		state0[2][0] = theta0
 		region0 = self.find_region(state0)
-		pdb.set_trace()
 
 		if region0 == 1:
 			state_matrix[1][0] = 1/np.cos(theta0)
@@ -179,26 +178,35 @@ class robot:
 		self.state_cov = np.dot(Ft, np.dot(self.state_cov, np.transpose(Ft)))+\
 							np.dot(Wt, np.dot(self.transistion_cov, np.transpose(Wt)))
 
-	def observation_update(self, action):
+	def observation_update(self):
 		Ht = self.ob_update_state_matrix(self.gt_state)
 		R = self.ob_cov
-		estimated_state = self.next_state(action)
+		estimated_ob = self.generate_observation(self.state_mean, add_noise=False)
+		real_ob = self.generate_observation(self.gt_state, add_noise=True)
 		K = np.dot(np.transpose(Ht), np.linalg.pinv(
 				(np.dot(Ht, np.dot(self.state_cov, np.transpose(Ht)))+R)))
-		self.state_mean = self.state_mean + np.dot(K, np.gt_state - estimated_state)
+		self.state_mean = self.state_mean + np.dot(np.dot(self.state_cov, K), 
+							real_ob - estimated_ob)
 		self.state_cov = self.state_cov - np.dot(np.dot(self.state_cov, K), 
 							np.dot(Ht, self.state_cov))
 
 if __name__ == '__main__':
 	state_mean, state_cov, gt_state = np.zeros((3,1)), np.zeros((3,3)), np.zeros((3,1))
-	state_mean[0][0], state_mean[1][0], state_mean[2][0] = 50, 50, np.pi/2
-	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 2, 2, 0.5
-	gt_state[0][0], gt_state[1][0], gt_state[2][0] = 50, 50, np.pi*3/2
+	state_mean[0][0], state_mean[1][0], state_mean[2][0] = 50, 50, 0
+	#state_cov[0][0], state_cov[1][1], state_cov[2][2] = 2, 2, 0.5
+	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 100, 100, np.pi/2
+	gt_state[0][0], gt_state[1][0], gt_state[2][0] = 50, 50, np.pi/2
 	action = np.zeros((2,1))
-	action[0][0] = 5
+	#action[0][0] = 0
 	robot = robot(state_mean, state_cov, gt_state)
+	while True:
+		robot.observation_update()
+		print(robot.state_cov, '\r\n', robot.state_mean)
+		pdb.set_trace()
+	'''
 	robot.time_update(action)
 	robot.distance_function(robot.gt_state)
 	print(robot.ob_update_state_matrix(robot.gt_state))
 	pdb.set_trace()
+	'''
 
