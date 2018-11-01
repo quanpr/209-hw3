@@ -3,6 +3,7 @@ import pdb
 from copy import deepcopy
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+from statistics import stdev
 
 class robot:
 	# Initialization
@@ -258,6 +259,7 @@ line, = ax.plot([], [], 'o')
 
 glb_mean = []
 glb_cov = []
+glb_error = []
 
 def init():
     line.set_data([], [])
@@ -270,7 +272,7 @@ def animate(i):
 	return line,
 
 def test_case2(robot,state):
-	global glb_mean, glb_cov
+	global glb_mean, glb_cov, glb_error
 	robot.gt_state = state
 	action_pair_array = [robot.action_pair_generate(30,0),
 						robot.action_pair_generate(0,90),
@@ -334,9 +336,13 @@ def test_case2(robot,state):
 			mean.append(robot.state_mean[2][0])
 			glb_mean.append(mean)
 			glb_cov.append(robot.state_cov.tolist())
+			glb_error.append(robot.state_mean - robot.gt_state)
 
 
 if __name__ == '__main__':
+	x_std_list = []
+	y_std_list = []
+	th_std_list = []
 
 	state = np.array([[42.5]
 			,[42.5],
@@ -349,8 +355,15 @@ if __name__ == '__main__':
 	robot = robot(state,state_cov)
 
 	test_case2(robot,state1)
+	for idx,i in enumerate(glb_error):
+		x_std_list.append(glb_error[idx][0])
+		y_std_list.append(glb_error[idx][1])
+		th_std_list.append(glb_error[idx][2])
+
+
+	print ('standard deviation in x axis: {}'.format(np.std(np.array(x_std_list))))
+	print ('standard deviation in y axis: {}'.format(np.std(np.array(y_std_list))))
+	print ('standard deviation in theta: {}'.format(np.std(np.array(th_std_list))))
 
 	anim = animation.FuncAnimation(fig, animate, init_func=init,frames=100, interval=100, blit=True)
-
-
 	plt.show()
