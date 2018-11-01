@@ -1,9 +1,12 @@
 import numpy as np
 import pdb
 from copy import deepcopy
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from statistics import stdev
+
 
 class robot:
 	# Initialization
@@ -251,6 +254,144 @@ class robot:
 				action_pair[1][0] = -action_pair[0][0]
 			return action_pair
 
+def test_case4(robot):
+	action_pair_array = [robot.action_pair_generate(30,0),
+						robot.action_pair_generate(0,90),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(0,-90),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(50,0),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(0,45),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						robot.action_pair_generate(30,0),
+						]
+
+	covariance, mean = [], []
+	x_mean, x_cov = [], []
+	y_mean, y_cov = [], []
+	theta_mean, theta_cov = [], []
+	gt = []
+	for a in action_pair_array:
+		robot.gt_state = robot.next_state(robot.gt_state,a,True)
+		robot.time_update(a)
+		robot.observation_update()
+		gt.append([robot.gt_state[0][0], robot.gt_state[1][0], robot.gt_state[2][0]])
+
+		covariance.append(robot.state_mean)
+		mean.append(robot.state_mean)
+
+		x_mean.append(robot.state_mean[0][0])
+		y_mean.append(robot.state_mean[1][0])
+		theta_mean.append(robot.state_mean[2][0])
+
+		x_cov.append(abs(robot.state_cov[0][0]**0.5))
+		y_cov.append(abs(robot.state_cov[1][1]**0.5))
+		theta_cov.append(abs(robot.state_cov[2][2]**0.5))
+
+	idx = [i for i in range(0, len(action_pair_array))]
+	plt.figure()
+	#pdb.set_trace()
+	plt.ylabel('uncertainty in y axis')
+	plt.xlabel('uncertainty in x axis')
+	plt.errorbar(x_mean, y_mean, xerr=x_cov, yerr=y_cov, fmt='o', ecolor='r', capthick=2, label='estimated random variable')
+	plt.title("Ground truth trajectory vs estimated trajectory with uncertainty")
+	plt.plot([g[0] for g in gt], [g[1] for g in gt], 'g', label='ground truth position')
+	plt.legend()
+	plt.grid()
+	plt.show()
+
+	plt.figure()
+	#pdb.set_trace()
+	plt.ylabel('uncertainty in orientation')
+	plt.xlabel('time duration')
+	plt.errorbar(idx, theta_mean, yerr=theta_cov, fmt='o', ecolor='b', capthick=2, label='estimated random variable')
+	plt.title("Ground truth orientation vs estimated orientation with uncertainty")
+	plt.plot(idx, [g[2] for g in gt], 'g', label='ground truth orientation')
+	plt.legend()
+	plt.grid()
+	plt.show()
+
+def test_case3(robot):
+	i = 0
+	covariance, mean = [], []
+	x_mean, x_cov = [], []
+	y_mean, y_cov = [], []
+	theta_mean, theta_cov = [], []
+	#while i <= 100:
+	while i < 20:
+		robot.observation_update()
+		i += 1
+		if i % 2 == 0:
+		#if True:
+			covariance.append(robot.state_mean)
+			mean.append(robot.state_mean)
+			#print(robot.state_cov, '\r\n', robot.state_mean)
+			#pdb.set_trace()
+			x_mean.append(robot.state_mean[0][0])
+			y_mean.append(robot.state_mean[1][0])
+			theta_mean.append(robot.state_mean[2][0])
+
+			x_cov.append(abs(robot.state_cov[0][0]**0.5))
+			y_cov.append(abs(robot.state_cov[1][1]**0.5))
+			theta_cov.append(abs(robot.state_cov[2][2]**0.5))
+
+	idx = [i for i in range(1, 11)]
+	plt.figure()
+	#pdb.set_trace()
+	plt.ylabel('uncertainty in y position')
+	plt.xlabel('time duration')
+	plt.errorbar(idx, y_mean, yerr=y_cov, fmt='o', ecolor='g', capthick=2, label='uncertainty x')
+	plt.title("Error bar with ground truth y = 250, initial uncertainty 400 mm")
+	#plt.plot(idx, [robot.gt_state[1][0] for _ in idx], label='ground truth position')
+	plt.grid()
+	plt.show()
+
+	plt.figure()
+	#pdb.set_trace()
+	plt.ylabel('uncertainty in x position')
+	plt.xlabel('time duration')
+	plt.errorbar(idx, x_mean, yerr=x_cov, fmt='o', ecolor='r', capthick=2)
+	plt.title("Error bar with ground truth x = 375, initial uncertainty 400 mm")
+	plt.grid()
+	plt.show()
+
+	plt.figure()
+	#pdb.set_trace()
+	plt.ylabel('uncertainty in orientation')
+	plt.xlabel('time duration')
+	plt.errorbar(idx, theta_mean, yerr=theta_cov, fmt='o', ecolor='b', capthick=2)
+	plt.title("Error bar with ground truth orientation = pi**2, initial uncertainty sqrt(pi/2)")
+	plt.grid()
+	plt.show()
 
 # Animation and testcast begin
 fig = plt.figure()
@@ -338,7 +479,7 @@ def test_case2(robot,state):
 			glb_cov.append(robot.state_cov.tolist())
 			glb_error.append(robot.state_mean - robot.gt_state)
 
-
+###
 if __name__ == '__main__':
 	x_std_list = []
 	y_std_list = []
