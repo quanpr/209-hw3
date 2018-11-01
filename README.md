@@ -19,8 +19,7 @@ Estimated location and orientation with low uncertainty initialized. For more in
 ![](./images/Figure_3.png)
 ![](./images/Figure_4.png)
 
-###Instructions on running the code:
+### Instructions on running the code:
 	
-	please go to the main function of the code, initialize the characteristic of the robot,
-	and call test functions, such as test_case2, test_case3, test_case4
+	please go to the main function of the code, initialize the characteristic of the robot, and call test functions, such as test_case2, test_case3, test_case4
 
