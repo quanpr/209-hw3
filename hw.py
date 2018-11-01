@@ -360,10 +360,27 @@ if __name__ == '__main__':
 		y_std_list.append(glb_error[idx][1])
 		th_std_list.append(glb_error[idx][2])
 
+	#measure standard deviation
+	x_std = np.std(np.array(x_std_list))
+	y_std = np.std(np.array(y_std_list))
+ 	th_std = np.std(np.array(th_std_list))
+	print ('standard deviation in x axis: {}'.format(x_std))
+	print ('standard deviation in y axis: {}'.format(y_std ))
+	print ('standard deviation in theta: {}'.format(th_std))
 
-	print ('standard deviation in x axis: {}'.format(np.std(np.array(x_std_list))))
-	print ('standard deviation in y axis: {}'.format(np.std(np.array(y_std_list))))
-	print ('standard deviation in theta: {}'.format(np.std(np.array(th_std_list))))
+	#output the index when the value is less than std
+	for idx,i in enumerate(glb_error):
+		if (abs(glb_error[idx][0]) <= x_std):
+			print ('x converger at {} sec'.format(idx+1))
+			break
+	for idx,i in enumerate(glb_error):
+		if (abs(glb_error[idx][1]) <= y_std):
+			print ('y converger at {} sec'.format(idx+1))
+			break
+	for idx,i in enumerate(glb_error):
+		if (abs(glb_error[idx][2]) <= th_std):
+			print ('theta converger at {} sec'.format(idx+1))
+			break
 
 	anim = animation.FuncAnimation(fig, animate, init_func=init,frames=100, interval=100, blit=True)
 	plt.show()
