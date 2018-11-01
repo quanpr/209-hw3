@@ -343,6 +343,7 @@ if __name__ == '__main__':
 	x_std_list = []
 	y_std_list = []
 	th_std_list = []
+	np.random.seed(0)
 
 	state = np.array([[42.5]
 			,[42.5],
