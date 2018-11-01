@@ -6,4 +6,4 @@
 ### Objective
 To explore Kalman Filtering (KF) to estimate the state of a simple two-wheeled robot
 
-! (./images/Figure_1.png)
+![](./images/Figure_1.png)
