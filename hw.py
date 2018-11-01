@@ -254,6 +254,9 @@ class robot:
 				action_pair[1][0] = -action_pair[0][0]
 			return action_pair
 
+
+#following are for test case and plot animaition generation
+
 def test_case4(robot):
 	action_pair_array = [robot.action_pair_generate(30,0),
 						robot.action_pair_generate(0,90),
@@ -412,9 +415,8 @@ def animate(i):
 	line.set_data(x, y)
 	return line,
 
-def test_case2(robot,state):
+def test_case2(robot):
 	global glb_mean, glb_cov, glb_error
-	robot.gt_state = state
 	action_pair_array = [robot.action_pair_generate(30,0),
 						robot.action_pair_generate(0,90),
 						robot.action_pair_generate(30,0),
@@ -478,31 +480,12 @@ def test_case2(robot,state):
 			glb_mean.append(mean)
 			glb_cov.append(robot.state_cov.tolist())
 			glb_error.append(robot.state_mean - robot.gt_state)
+		for idx,i in enumerate(glb_error):
+			x_std_list.append(glb_error[idx][0])
+			y_std_list.append(glb_error[idx][1])
+			th_std_list.append(glb_error[idx][2])
 
-###
-if __name__ == '__main__':
-	x_std_list = []
-	y_std_list = []
-	th_std_list = []
-	np.random.seed(0)
-
-	state = np.array([[42.5]
-			,[42.5],
-			[np.pi]])
-	state1 = np.array([[375]
-			,[250],
-			[np.pi]])
-	state_cov = np.zeros((3,3))
-	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 10000, 10000, np.pi
-	robot = robot(state,state_cov)
-
-	test_case2(robot,state1)
-	for idx,i in enumerate(glb_error):
-		x_std_list.append(glb_error[idx][0])
-		y_std_list.append(glb_error[idx][1])
-		th_std_list.append(glb_error[idx][2])
-
-	#measure standard deviation
+		#measure standard deviation
 	x_std = np.std(np.array(x_std_list))
 	y_std = np.std(np.array(y_std_list))
  	th_std = np.std(np.array(th_std_list))
@@ -523,6 +506,22 @@ if __name__ == '__main__':
 		if (abs(glb_error[idx][2]) <= th_std):
 			print ('theta converger at {} sec'.format(idx+1))
 			break
-
 	anim = animation.FuncAnimation(fig, animate, init_func=init,frames=100, interval=100, blit=True)
 	plt.show()
+###
+if __name__ == '__main__':
+	x_std_list = []
+	y_std_list = []
+	th_std_list = []
+	np.random.seed(0)
+
+	state = np.array([[42.5],[42.5],[np.pi]])
+	state1 = np.array([[375],[250],	[np.pi]])
+	state_cov = np.zeros((3,3))
+	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 1, 1, np.pi
+
+	robot = robot(state1,state_cov,state1)
+	# uncomment to execute test case
+	test_case2(robot)
+	#test_case3(robot)
+	#test_case4(robot)
