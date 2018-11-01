@@ -1,6 +1,9 @@
 import numpy as np
 import pdb
 from copy import deepcopy
+import matplotlib
+matplotlib.use('TkAgg')
+import matplotlib.pyplot as plt
 
 class robot:
 	# Initialization
@@ -223,11 +226,8 @@ class robot:
 				action_pair[0][0] = rotate * np.pi / 180.0*85/40
 				action_pair[1][0] = -action_pair[0][0]
 			return action_pair
+
 def test_case1(robot):
-	state = np.array([[375]
-					,[250],
-					[0]])
-	robot.gt_state = state
 	action_pair_array = [robot.action_pair_generate(0,45),
 						robot.action_pair_generate(0,45),
 						robot.action_pair_generate(0,45),
@@ -243,8 +243,7 @@ def test_case1(robot):
 		#robot.timeupdate
 		#robot.observationupdate
 
-def test_case2(robot,state):
-	robot.gt_state = state
+def test_case2(robot):
 	action_pair_array = [robot.action_pair_generate(30,0),
 						robot.action_pair_generate(0,90),
 						robot.action_pair_generate(30,0),
@@ -265,31 +264,69 @@ def test_case2(robot,state):
 		print(robot.state_cov)
 		print('\n')
 
+def test_case3(robot):
+	i = 0
+	covariance, mean = [], []
+	x_mean, x_cov = [], []
+	y_mean, y_cov = [], []
+	theta_mean, theta_cov = [], []
+	#while i <= 100:
+	while i < 20:
+		robot.observation_update()
+		i += 1
+		if i % 2 == 0:
+		#if True:
+			covariance.append(robot.state_mean)
+			mean.append(robot.state_mean)
+			#print(robot.state_cov, '\r\n', robot.state_mean)
+			#pdb.set_trace()
+			x_mean.append(robot.state_mean[0][0])
+			y_mean.append(robot.state_mean[1][0])
+			theta_mean.append(robot.state_mean[2][0])
+
+			x_cov.append(abs(robot.state_cov[0][0]**0.5))
+			y_cov.append(abs(robot.state_cov[1][1]**0.5))
+			theta_cov.append(abs(robot.state_cov[2][2]**0.5))
+
+	idx = [i for i in range(1, 11)]
+	plt.figure()
+	#pdb.set_trace()
+	plt.ylabel('uncertainty in y position')
+	plt.xlabel('time duration')
+	plt.errorbar(idx, y_mean, yerr=y_cov, fmt='o', ecolor='g', capthick=2, label='uncertainty x')
+	plt.title("Error bar with ground truth y = 150, initial uncertainty 100 mm")
+	#plt.plot(idx, [robot.gt_state[1][0] for _ in idx], label='ground truth position')
+	plt.grid()
+	plt.show()
+
+	plt.figure()
+	#pdb.set_trace()
+	plt.ylabel('uncertainty in x position')
+	plt.xlabel('time duration')
+	plt.errorbar(idx, x_mean, yerr=x_cov, fmt='o', ecolor='r', capthick=2)
+	plt.title("Error bar with ground truth x = 100, initial uncertainty 100 mm")
+	plt.grid()
+	plt.show()
+
+	plt.figure()
+	#pdb.set_trace()
+	plt.ylabel('uncertainty in orientation')
+	plt.xlabel('time duration')
+	plt.errorbar(idx, theta_mean, yerr=theta_cov, fmt='o', ecolor='b', capthick=2)
+	plt.title("Error bar with ground truth orientation = pi/2, initial uncertainty sqrt(pi/2)")
+	plt.grid()
+	plt.show()
+
 ###
 if __name__ == '__main__':
+	state_mean, state_cov, gt_state = np.zeros((3,1)), np.zeros((3,3)), np.zeros((3,1))
+	state_mean[0][0], state_mean[1][0], state_mean[2][0] = 20, 20, np.pi/6
+	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 10000, 10000, np.pi/2
+	gt_state[0][0], gt_state[1][0], gt_state[2][0] = 100, 150, np.pi/2
 
-	state = np.array([[375]
-			,[250],
-			[np.pi]])
-	state_cov = np.zeros((3,3))
-	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 1, 1, np.pi
-	robot = robot(state,state_cov)
-	test_case2(robot,state)
+	robot = robot(state_mean, state_cov, gt_state)
+	#test_case2(robot,state)
+	test_case3(robot)
 
-# if __name__ == '__main__':
-# 	state_mean, state_cov, gt_state = np.zeros((3,1)), np.zeros((3,3)), np.zeros((3,1))
-# 	state_mean[0][0], state_mean[1][0], state_mean[2][0] = 20, 20, np.pi/6
-# 	#state_cov[0][0], state_cov[1][1], state_cov[2][2] = 2, 2, 0.5
-# 	state_cov[0][0], state_cov[1][1], state_cov[2][2] = 10000, 10000, np.pi/2
-# 	gt_state[0][0], gt_state[1][0], gt_state[2][0] = 100, 100, np.pi/2
-# 	action = np.zeros((2,1))
-# 	#action[0][0] = 0
-# 	robot = robot(state_mean, state_cov, gt_state)
-# 	i = 0
-# 	while True:
-# 		robot.observation_update()
-# 		i += 1
-# 		if i % 100 == 0:
-# 			print(robot.state_cov, '\r\n', robot.state_mean)
-# 			pdb.set_trace()
+
 
