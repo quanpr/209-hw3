@@ -9,11 +9,13 @@ To explore Kalman Filtering (KF) to estimate the state of a simple two-wheeled r
 ### Experiment results
 
 Estimated location and orientation with low uncertainty initialized. For more intuitive illustration, please refer to our animation **Known inital position.mp4** of the distribution of random varaibles.
+
 ![](./images/Figure_1.png)
 ![](./images/Figure_2.png)
 
 
 Estimated location and orientation with low uncertainty initialized. For more intuitive illustration, please refer to our animation **Unknown inital position.mp4** of the distribution of random varaibles.
+
 ![](./images/Figure_3.png)
 ![](./images/Figure_4.png)
 
