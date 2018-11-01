@@ -148,7 +148,8 @@ class robot:
 		return observ
 
 	# H from kalman filter for observation update
-	# each states will have a cooresponding H matrix from one of the four matrix
+	# each state will have a cooresponding partial derivative from one of the four cases
+	# after determine the cases, H matrix can be constructed
 	def ob_update_state_matrix(self, state):
 		x, y, theta = state[0][0], state[1][0], state[2][0]
 		region = self.find_region(state)
