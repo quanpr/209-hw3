@@ -21,5 +21,5 @@ Estimated location and orientation with low uncertainty initialized. For more in
 
 ### Instructions on running the code:
 	
-	please go to the main function of the code, initialize the characteristic of the robot, and call test functions, such as test_case2(robot,state1), test_case3(robot), and test_case4(robot)
+	please go to the main function of the code, initialize the characteristic of the robot with robot(state_mean, state_cov, gt_state), and call test functions, such as test_case2(robot), test_case3(robot), and test_case4(robot)
 
